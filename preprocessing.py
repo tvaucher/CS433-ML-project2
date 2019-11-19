@@ -19,7 +19,7 @@ def __extend_emojis(emojis):
 
 
 positive_emojis = __extend_emojis([':)', ":')", ':d', ';)', '^_^',
-                                 ';]', ':3', 'x3', 'xxx', 'xx', ':*', 'c:', ':o'])
+                                   ';]', ':3', 'x3', 'xxx', 'xx', ':*', 'c:', ':o'])
 negative_emojis = __extend_emojis(
     ['<\\3', ':(', ":'(", '-_-', '._.', '- ___ -'])
 neutral_emojis = __extend_emojis([':/', ':|', ':||', ':l'])
@@ -96,7 +96,7 @@ def preprocess(x):
 
 
 def tokenize(x):
-    ''' tokenize the string, return '''
+    ''' tokenize the string, return preprocessed list of tokens'''
     parsed = nlp(preprocess(x))
     matches = matcher(parsed)
     indexes = []
@@ -128,14 +128,25 @@ def remove_duplicate(train_file, out_file):
             print(l, end='', file=f2)
 
 
+def filter_tokens(raw_tokens):
+    filtered_word = {'<user>', '<url>', '/', ',', ':', '[', ']', 'rt'}
+    tokens = [t for t in raw_tokens if t not in filtered_word]
+    if not tokens:
+        tokens = ['<unk>']
+    return tokens
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--positive', type=str,
-                        help='Path to positive training file (.txt)')
+                        help='Path to positive training file (.txt)',
+                        required=True)
     parser.add_argument('-n', '--negative', type=str,
-                        help='Path to negative training file (.txt)')
+                        help='Path to negative training file (.txt)',
+                        required=True)
     parser.add_argument('-o', '--out', type=str,
-                        help='Path to output preprocessed training file (.tsv)')
+                        help='Path to output preprocessed training file (.tsv)',
+                        required=True)
     args = parser.parse_args()
 
     preprocess_train(args.positive, args.negative, args.out)
