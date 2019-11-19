@@ -28,27 +28,36 @@ Lorem ipsum dolor sit amet
 
 --------
 
+3. If you don't want to run the preprocessing part (about ~15 min) we suggest that you download our [preprocessed training dataset]() and put it in the datafolder
+
 ### Create the environment
 
 Please, also read the notes bellow if you don't have a GPU or a Mac
 
 ```shell
-conda create -n cs433proj2 python=3.7 spacy pandas matplotlib
-conda activate cs433proj2
-conda install pytorch cudatoolkit=10.1 -c pytorch
-pip install git+https://github.com/pytorch/text.git
+conda create -n twitter python=3.7 pandas matplotlib tqdm
+conda activate twitter
+conda install pytorch=1.3 cudatoolkit=10.1 -c pytorch
+pip install torchtext==0.3.1 spacy==2.1.9
+python -m spacy download en_core_web_sm
 ```
 
 **Notes on dependencies**
 
 - [`pandas`]( https://pandas.pydata.org/ ):  Data structures and analysis tools. Used for data exploration in combination of `matplotlib` .
+- [`tqdm`](https://tqdm.github.io/): fancy progress bars
 - [`spacy`]( https://spacy.io/ ): NLP framework. Used for tokenizing and during the preprocessing
 - [`pytorch`]( https://pytorch.org/ ): Deep Learning framework. Used to create, train and exploit our deep learning models. If you're running on a laptop without a GPU, you need to change the `cudatoolkit=10.1` to `cpu_only`, or remove it completely on a Mac because they don't support CUDA at all. See [PyTorch Get Started]( https://pytorch.org/get-started/locally/ ) for more infos.
-- [`torchtext `]( https://pytorch.org/text/index.html ): Allow to facilitate: Data loading and preprocessing, batches and feeding to a neural net as well as downloading and loading pretrained Embeddings (for us [Stanford NLP Twitter GloVe]( https://nlp.stanford.edu/projects/glove/ )). At the time of writing, `torchtext 0.4.0` has a [bug]( https://github.com/pytorch/text/pull/584 ) in one of its core features so we need to download it directly from GitHub in order to get the fixed version.
+- [`torchtext `]( https://pytorch.org/text/index.html ): Allow to facilitate: Data loading and preprocessing, batches and feeding to a neural net as well as downloading and loading pretrained Embeddings (for us [Stanford NLP Twitter GloVe]( https://nlp.stanford.edu/projects/glove/ )). At the time of writing, `torchtext 0.4.0` has a [bug]( https://github.com/pytorch/text/pull/584) in one of its core features so we use v0.3.1
 
 ### Run the code
 
 From the root folder of the project
+
+In order to perform the preprocessing:
+```shell
+python preprocessing.py -p data/train_pos_full.txt -n data/train_neg_full.txt -o data/train_full.tsv
+```
 
 ```shell
 python run.py
