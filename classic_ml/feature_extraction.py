@@ -1,14 +1,8 @@
 import numpy as np
 from nltk import FreqDist
 from nltk import TextCollection
-from nltk.sentiment import vader
-from empath import Empath
 
-from classic_ml.preprocessing import dictionary_english
-
-vader_sia = vader.SentimentIntensityAnalyzer()
-
-empath_analyzer = Empath()
+from classic_ml.resources import dictionary_english, vader_sia, empath_analyzer
 
 
 def get_language_style_features(tweet_tokens, word_tokens):

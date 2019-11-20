@@ -7,7 +7,7 @@ from classic_ml.feature_extraction import reduce_vocabulary, get_tf_idf_features
 from classic_ml.feature_extraction import get_vader_features
 from classic_ml.feature_extraction import get_empath_features
 
-SEED = 2019
+from classic_ml.resources import SEED, empath_analyzer
 
 
 def read_tweet_file(path, id_present=True):

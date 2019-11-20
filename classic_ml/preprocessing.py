@@ -1,27 +1,10 @@
 import re
-from nltk import download
-from nltk.corpus import words as nltk_dictionary
-from nltk.corpus import stopwords, wordnet
-from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import sent_tokenize
 from nltk import ngrams
 from nltk import pos_tag
 
-download("words")
-download('stopwords')
-download('wordnet')
-download('vader_lexicon')
-
-stopwords_english = set(stopwords.words('english'))
-lemmatizer = WordNetLemmatizer()
-
-dictionary_english = set(nltk_dictionary.words())
-
-positive_emojis = ['<3', ':)', ":')", ":d", ":p", "xp", ";)",
-                   ";]", ":3", "xxx", "xx", ":*", "c:", ";p"]
-negative_emojis = [r"<\3", ":/", ":(", ":'(", "-_-", ":||", "._.", "- ___ -"]
-positive_emojis.extend([' '.join(emoji) for emoji in positive_emojis])
-negative_emojis.extend([' '.join(emoji) for emoji in negative_emojis])
+from classic_ml.resources import special_tags, positive_emojis, negative_emojis, \
+    stopwords_english, dictionary_english, lemmatizer, wordnet
 
 
 def parse_cropped_ending_of_tweet(tweet):
