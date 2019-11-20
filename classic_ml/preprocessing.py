@@ -36,7 +36,7 @@ def remove_repetitions_in_tokens(tweet_tokens, word_tokens):
     tweet_tokens_fixed = []
     for tweet_token in tweet_tokens:
         fixed_token = re.sub(r"(.)\1+", r"\1", tweet_token)
-        if tweet_token in word_tokens and fixed_token not in dictionary_english:
+        if tweet_token in special_tags or (tweet_token in word_tokens and fixed_token not in dictionary_english):
             tweet_tokens_fixed.append(tweet_token)
         else:
             tweet_tokens_fixed.append(fixed_token)
@@ -83,7 +83,7 @@ def preprocess_tweet(tweet):
     tweet_tokens = tweet_processed.split()
     tweet_tokens = remove_stopwords_in_tweet(tweet_tokens)
     tweet_word_tokens = get_only_word_tokens(tweet_tokens)
-    # tweet_tokens = remove_repetitions_in_tokens(tweet_tokens, tweet_word_tokens)
+    tweet_tokens = remove_repetitions_in_tokens(tweet_tokens, tweet_word_tokens)
     tweet_word_tokens = lemmatize_words(tweet_word_tokens)
 
     return tweet_tokens, tweet_word_tokens
