@@ -1,6 +1,5 @@
 from os.path import isfile
 
-import re
 import numpy as np
 import pandas as pd
 
@@ -18,7 +17,9 @@ from classic_ml.feature_extraction import get_empath_features
 
 from classic_ml.resources import SEED, empath_analyzer
 
-from classic_ml.feature_selection import select_features_information_gain
+from classic_ml.feature_selection import get_dataset_normalizer, get_feature_selector_information_gain
+
+from classic_ml.cross_validation import get_best_params_for_classifiers
 
 
 def read_tweet_file(path, id_present=True):
@@ -43,8 +44,7 @@ def remove_duplicate_tweets(tweet_list):
 
 
 if __name__ == "__main__":
-    test_tweets, test_ids = read_tweet_file("../data/test_data.txt")
-    num_test_tweets = len(test_tweets)
+    np.random.seed(SEED)
 
     train_tweets_pos, _ = read_tweet_file("../data/train_pos.txt", id_present=False)
     train_tweets_neg, _ = read_tweet_file("../data/train_neg.txt", id_present=False)
@@ -58,14 +58,19 @@ if __name__ == "__main__":
     train_classes = [1, ] * num_train_tweets_pos + [-1, ] * num_train_tweets_neg
     del train_tweets_pos, train_tweets_neg
 
-    print("Total number of testing tweets:", num_test_tweets)
     print("Number of positive training tweets:", num_train_tweets_pos)
     print("Number of negative training tweets:", num_train_tweets_neg)
     print("Total number of training tweets:", num_train_tweets)
 
+    tweet_vocabulary_path = "./files/tweet_vocabulary.gz"
     train_dataset_filepath = "./files/train_dataset.tsv"
+    feature_labels_filepath = "./files/feature_labels.gz"
     train_dataset_reduced_filepath = "./files/train_dataset_reduced.tsv"
-    feature_scores_filepath = "./files/feature_scores"
+    feature_normalizer_filepath = "./files/feature_normalizer.gz"
+    feature_selector_filepath = "./files/feature_selector.gz"
+    feature_scores_filepath = "./files/feature_scores.tsv"
+    best_models_filepath = "./files/best_models.gz"
+    cross_val_results_filepath = "./files/cross_val_results.tsv"
 
     if not isfile(train_dataset_filepath):
         tweets_language_style_features = []
@@ -77,7 +82,7 @@ if __name__ == "__main__":
 
         for i, tweet in enumerate(train_tweets):
             if i % 5000 == 0:
-                print("Processing training tweet #{}...".format(i))
+                print("Processing training tweet #{}/{}...".format(i, num_train_tweets))
 
             tweet_tokens, tweet_words = preprocess_tweet(tweet)
 
@@ -92,16 +97,18 @@ if __name__ == "__main__":
 
         print("Calculating TF-IDF features...")
         tweet_vocabulary = reduce_vocabulary(tweet_vocabulary)
+        save_object(tweet_vocabulary, tweet_vocabulary_path)
         tweets_tf_idf_features = get_tf_idf_features(tweet_documents, tweet_vocabulary)
         print("Done!")
 
         print("Saving training features locally...")
         feature_labels = []
         feature_labels.extend(["WORD PERCENTAGE", "MEAN WORD LENGTH", "DICTIONARY PERCENTAGE", "UNIQUENESS PERCENTAGE"])
-        feature_labels.extend([re.escape(token) + " TF-IDF" for token in tweet_vocabulary])
+        feature_labels.extend([token + " TF-IDF" for token in tweet_vocabulary])
         feature_labels.extend(["POS NOUNS", "POS VERBS", "POS ADJECTIVES", "POS ADVERBS"])
         feature_labels.extend(["VADER POSITIVE", "VADER NEUTRAL", "VADER NEGATIVE"])
         feature_labels.extend(["EMPATH " + empath_category for empath_category in empath_analyzer.cats.keys()])
+        save_object(feature_labels, feature_labels_filepath)
 
         train_dataset = np.hstack((tweets_language_style_features,
                                    tweets_tf_idf_features,
@@ -115,22 +122,44 @@ if __name__ == "__main__":
         if not isfile(train_dataset_reduced_filepath):
             print("Reading training features...")
             train_dataset = pd.read_csv(train_dataset_filepath, sep='\t', header=0, encoding='utf-8')
-            feature_labels = train_dataset.columns.values.tolist()
+            feature_labels = load_object(feature_labels_filepath)
+            print("Done!")
+
+            print("Normalizing training data...")
+            feature_normalizer = get_dataset_normalizer(train_dataset)
+            save_object(feature_normalizer, feature_normalizer_filepath)
+            train_dataset = feature_normalizer.transform(train_dataset)
             print("Done!")
 
             print("Performing feature selection on training features...")
-            train_dataset_reduced, feature_scores = \
-                select_features_information_gain(train_dataset, train_classes, feature_labels, num_features=100)
+            feature_selector, feature_scores = \
+                get_feature_selector_information_gain(train_dataset, train_classes, feature_labels, num_features=40)
+            save_object(feature_selector, feature_selector_filepath)
+            feature_scores_sorted = sorted(feature_scores.items(), key=lambda x: x[1], reverse=True)
+            feature_scores_df = pd.DataFrame(feature_scores_sorted, columns=["Feature", "Importance Score"], index=None)
+            feature_scores_df.to_csv(feature_scores_filepath, sep='\t', header=True, index=False, encoding='utf-8')
 
+            train_dataset_reduced = pd.DataFrame(feature_selector.transform(train_dataset),
+                                                 columns=feature_scores.keys())
             del train_dataset
             train_dataset_reduced.to_csv(train_dataset_reduced_filepath, sep='\t',
                                          header=True, index=False, encoding='utf-8')
-            save_object(feature_scores, feature_scores_filepath)
             print("Done!")
         else:
             print("Reading reduced training features...")
             train_dataset_reduced = pd.read_csv(train_dataset_reduced_filepath, sep='\t', header=0, encoding='utf-8')
-            feature_scores = load_object(feature_scores_filepath)
-            best_features = train_dataset_reduced.columns.tolist()
-            print(sorted(feature_scores.items(), key=lambda x: x[1], reverse=True))
             print("Done!")
+
+            if not isfile(best_models_filepath):
+                print("Cross-validating classifier parameters and training classifiers...")
+                best_params, best_models, cross_val_scores = \
+                    get_best_params_for_classifiers(train_dataset_reduced, train_classes, use_default_params=True)
+                save_object(best_models, best_models_filepath)
+
+                cross_val_results = [[classifier, best_params[classifier], cross_val_score]
+                                     for classifier, cross_val_score in cross_val_scores.items()]
+                cross_val_results_df = pd.DataFrame(cross_val_results,
+                                                    columns=["Classifier", "Parameters", "Cross-validation score"])
+                cross_val_results_df.to_csv(cross_val_results_filepath, sep='\t',
+                                            header=True, index=False, encoding='utf-8')
+                print("Done!")
