@@ -54,45 +54,45 @@ if __name__ == "__main__":
     test_dataset_reduced_filepath = "./files/test_dataset_reduced.tsv"
     submission_filepath = "./files/submission.csv"
 
-    if not isfile(test_dataset_filepath):
-        tweets_language_style_features = []
-        tweet_documents = []
-        tweets_pos_features = []
-        tweets_vader_sentiment_features = []
-        tweets_empath_sentiment_features = []
+    if not isfile(test_dataset_reduced_filepath):
+        if not isfile(test_dataset_filepath):
+            tweets_language_style_features = []
+            tweet_documents = []
+            tweets_pos_features = []
+            tweets_vader_sentiment_features = []
+            tweets_empath_sentiment_features = []
 
-        for i, tweet in enumerate(test_tweets):
-            if i % 500 == 0:
-                print("Processing testing tweet #{}/{}...".format(i, num_test_tweets))
+            for i, tweet in enumerate(test_tweets):
+                if i % 500 == 0:
+                    print("Processing testing tweet #{}/{}...".format(i, num_test_tweets))
 
-            tweet_tokens, tweet_words = preprocess_tweet(tweet)
+                tweet_tokens, tweet_words = preprocess_tweet(tweet)
 
-            tweets_language_style_features.append(get_language_style_features(tweet_tokens, tweet_words))
-            tweet_documents.append(tweet_tokens)
-            tweets_pos_features.append(get_pos_features(tweet_words))
-            tweets_vader_sentiment_features.append(get_vader_features(tweet))
-            tweets_empath_sentiment_features.append(get_empath_features(tweet))
+                tweets_language_style_features.append(get_language_style_features(tweet_tokens, tweet_words))
+                tweet_documents.append(tweet_tokens)
+                tweets_pos_features.append(get_pos_features(tweet_words))
+                tweets_vader_sentiment_features.append(get_vader_features(tweet))
+                tweets_empath_sentiment_features.append(get_empath_features(tweet))
 
-        print("Done!")
+            print("Done!")
 
-        print("Calculating TF-IDF features...")
-        tweet_vocabulary = load_object(tweet_vocabulary_path)
-        tweets_tf_idf_features = get_tf_idf_features(tweet_documents, tweet_vocabulary)
-        print("Done!")
+            print("Calculating TF-IDF features...")
+            tweet_vocabulary = load_object(tweet_vocabulary_path)
+            tweets_tf_idf_features = get_tf_idf_features(tweet_documents, tweet_vocabulary)
+            print("Done!")
 
-        print("Saving testing features locally...")
-        feature_labels = load_object(feature_labels_filepath)
+            print("Saving testing features locally...")
+            feature_labels = load_object(feature_labels_filepath)
 
-        test_dataset = np.hstack((tweets_language_style_features,
-                                  tweets_tf_idf_features,
-                                  tweets_pos_features,
-                                  tweets_vader_sentiment_features,
-                                  tweets_empath_sentiment_features))
-        test_dataset = pd.DataFrame(test_dataset, columns=feature_labels)
-        test_dataset.to_csv(test_dataset_filepath, sep='\t', header=True, index=False, encoding='utf-8')
-        print("Done!")
-    else:
-        if not isfile(test_dataset_reduced_filepath):
+            test_dataset = np.hstack((tweets_language_style_features,
+                                      tweets_tf_idf_features,
+                                      tweets_pos_features,
+                                      tweets_vader_sentiment_features,
+                                      tweets_empath_sentiment_features))
+            test_dataset = pd.DataFrame(test_dataset, columns=feature_labels)
+            test_dataset.to_csv(test_dataset_filepath, sep='\t', header=True, index=False, encoding='utf-8')
+            print("Done!")
+        else:
             print("Reading testing features...")
             test_dataset = pd.read_csv(test_dataset_filepath, sep='\t', header=0, encoding='utf-8')
             feature_labels = load_object(feature_labels_filepath)
@@ -112,19 +112,19 @@ if __name__ == "__main__":
             test_dataset_reduced.to_csv(test_dataset_reduced_filepath, sep='\t',
                                         header=True, index=False, encoding='utf-8')
             print("Done!")
-        else:
-            print("Reading reduced testing features...")
-            test_dataset_reduced = pd.read_csv(test_dataset_reduced_filepath, sep='\t', header=0, encoding='utf-8')
-            print("Done!")
+    else:
+        print("Reading reduced testing features...")
+        test_dataset_reduced = pd.read_csv(test_dataset_reduced_filepath, sep='\t', header=0, encoding='utf-8')
+        print("Done!")
 
-            print("Loading trained classifiers...")
-            best_model = load_object(best_model_filepath)
-            print("Done!")
+        print("Loading trained classifiers...")
+        best_model = load_object(best_model_filepath)
+        print("Done!")
 
-            print("Calculating predictions using best classifier...")
-            test_predictions = best_model.predict(test_dataset_reduced)
-            print("Done!")
+        print("Calculating predictions using best classifier...")
+        test_predictions = best_model.predict(test_dataset_reduced)
+        print("Done!")
 
-            print("Generating submission file...")
-            create_csv_submission(test_ids, test_predictions, submission_filepath)
-            print("Done!")
+        print("Generating submission file...")
+        create_csv_submission(test_ids, test_predictions, submission_filepath)
+        print("Done!")
