@@ -1,8 +1,6 @@
 import numpy as np
 
 from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
-from scipy.spatial.distance import cosine
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
@@ -15,12 +13,6 @@ from sklearn.metrics import make_scorer
 from classic_ml.resources import SEED
 
 classifiers_default = {'Naive Bayes': GaussianNB(),
-                       'KNN': KNeighborsClassifier(
-                           n_neighbors=30,
-                           weights="distance",
-                           algorithm="auto",
-                           metric='euclidean',
-                           n_jobs=-1),
                        'Logistic Regression': LogisticRegression(
                            C=1e-2,
                            solver='sag',
@@ -58,11 +50,6 @@ classifiers_default = {'Naive Bayes': GaussianNB(),
 
 param_grids = {
     'Naive Bayes': {'var_smoothing': np.logspace(-18, 0, 19)},
-    'KNN': {'n_neighbors': list(range(1, 5)) + list(range(5, 55, 5)),
-            'algorithm': ['auto', ],
-            'weights': ['uniform', 'distance'],
-            'metric': ['euclidean', 'manhattan', cosine],
-            'n_jobs': [-1, ]},
     'Logistic Regression': {'C': np.logspace(-5, 5, 11),
                             'solver': ['lbfgs', 'sag'],
                             'max_iter': [1000, ],
