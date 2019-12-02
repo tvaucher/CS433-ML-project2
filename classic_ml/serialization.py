@@ -12,10 +12,10 @@ def save_object(obj, filepath, compress=True):
 
 
 def load_object(filepath, compressed=True):
-    with open(filepath, 'rb') as file:
-        if compressed:
-            obj = compress_pickle.load(filepath)
-        else:
+    if compressed:
+        obj = compress_pickle.load(filepath)
+    else:
+        with open(filepath, 'rb') as file:
             obj = c_pickle.load(file)
-        file.close()
-        return obj
+            file.close()
+    return obj

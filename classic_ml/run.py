@@ -125,6 +125,6 @@ if __name__ == "__main__":
             test_predictions = best_models["Random Forest"].predict(test_dataset_reduced)
             print("Done!")
 
-            print("Generate submission file...")
+            print("Generating submission file...")
             create_csv_submission(test_ids, test_predictions, submission_filepath)
             print("Done!")
