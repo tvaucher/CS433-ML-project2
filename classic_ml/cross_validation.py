@@ -10,7 +10,7 @@ from sklearn.model_selection import StratifiedKFold, GridSearchCV
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.metrics import make_scorer
 
-from classic_ml.resources import SEED
+from classic_ml.resources import SEED, NUM_CORES
 
 classifiers_default = {'Naive Bayes': GaussianNB(),
                        'Logistic Regression': LogisticRegression(
@@ -20,15 +20,7 @@ classifiers_default = {'Naive Bayes': GaussianNB(),
                            max_iter=10000,
                            class_weight="balanced",
                            random_state=SEED,
-                           n_jobs=-1),
-                       # TODO: Replace with LinearSVC
-                       # 'SVM': SVC(
-                       #     C=1e-2,
-                       #     kernel='rbf',
-                       #     gamma="scale",
-                       #     decision_function_shape="ovr",
-                       #     class_weight="balanced",
-                       #     random_state=SEED),
+                           n_jobs=NUM_CORES // 2),
                        'SVM': LinearSVC(
                            C=1e-2,
                            penalty='l2',
@@ -55,7 +47,7 @@ classifiers_default = {'Naive Bayes': GaussianNB(),
                            min_samples_leaf=5,
                            class_weight="balanced",
                            random_state=SEED,
-                           n_jobs=-1)}
+                           n_jobs=NUM_CORES // 2)}
 
 param_grids = {
     'Naive Bayes': {'var_smoothing': np.logspace(-18, 0, 19)},
@@ -64,23 +56,8 @@ param_grids = {
                             'max_iter': [1000, ],
                             'tol': [1e-5, ],
                             'class_weight': ['balanced', ],
-                            'n_jobs': [-1, ]},
-    'Neural Network': [{'hidden_layer_sizes': [(value,) for value in (1, 2, 5, 10, 20, 50, 100, 200, 500)],
-                        'activation': ['tanh', ],
-                        'solver': ['adam'],
-                        'alpha': np.logspace(-5, 5, 11),
-                        'learning_rate': ['constant', ],
-                        'learning_rate_init': [1e-2, ],
-                        'max_iter': [1000, ],
-                        'tol': [1e-5, ]},
-                       {'hidden_layer_sizes': [(value,) for value in (1, 2, 5, 10, 20, 50, 100, 200, 500)],
-                        'activation': ['tanh', ],
-                        'solver': ['sgd', ],
-                        'alpha': np.logspace(-5, 5, 11),
-                        'learning_rate': ['constant', 'invscaling', 'adaptive'],
-                        'learning_rate_init': [1e-2, ],
-                        'max_iter': [1000, ],
-                        'tol': [1e-5, ]}],
+                            'random_state': [SEED, ],
+                            'n_jobs': [NUM_CORES // 2, ]},
     'SVM': {'C': np.logspace(-5, 5, 11),
             'penalty': ['l2', ],
             'loss': ["squared_hinge", ],
@@ -89,12 +66,22 @@ param_grids = {
             'class_weight': ["balanced", ],
             'random_state': [SEED, ],
             'max_iter': [10000, ]},
+    'Neural Network': {'hidden_layer_sizes': [(value,) for value in (1, 2, 5, 10, 20, 50, 100, 200, 500)],
+                       'activation': ['tanh', 'relu'],
+                       'solver': ['adam'],
+                       'alpha': np.logspace(-5, 5, 11),
+                       'learning_rate': ['constant', ],
+                       'learning_rate_init': [1e-2, ],
+                       'max_iter': [1000, ],
+                       'tol': [1e-5, ],
+                       'random_state': [SEED, ]},
     'Random Forest': {'n_estimators': [10, 25, 50, 100, 250, 500, 1000],
-                      'criterion': ['entropy', 'gini'],
-                      'max_depth': [None, 10, 25, 50, 100],
-                      'min_samples_split': (2, 3, 5, 10),
-                      'min_samples_leaf': (2, 3, 5, 10),
-                      'n_jobs': [-1, ]}}
+                      'criterion': ['entropy'],
+                      'max_depth': [None, 10],
+                      'min_samples_split': [2, ],
+                      'min_samples_leaf': [5, ],
+                      'n_jobs': [NUM_CORES // 2, ],
+                      'random_state': [SEED, ]}}
 
 
 def get_best_params_for_classifiers(train_set, train_classes):

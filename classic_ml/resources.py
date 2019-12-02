@@ -1,3 +1,4 @@
+from os import cpu_count
 from nltk import download
 from nltk.corpus import words as nltk_dictionary
 from nltk.corpus import stopwords, wordnet
@@ -5,6 +6,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.sentiment import vader
 from empath import Empath
 
+NUM_CORES = cpu_count()
 SEED = 2019
 
 download("words")
