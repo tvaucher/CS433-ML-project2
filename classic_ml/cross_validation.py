@@ -1,7 +1,7 @@
 import numpy as np
 
 from sklearn.naive_bayes import GaussianNB
-from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -29,6 +29,15 @@ classifiers_default = {'Naive Bayes': GaussianNB(),
                        #     decision_function_shape="ovr",
                        #     class_weight="balanced",
                        #     random_state=SEED),
+                       'SVM': LinearSVC(
+                           C=1e-2,
+                           penalty='l2',
+                           loss="squared_hinge",
+                           dual=False,
+                           tol=1e-5,
+                           class_weight="balanced",
+                           random_state=SEED,
+                           max_iter=10000),
                        'Neural Network': MLPClassifier(
                            hidden_layer_sizes=(200,),
                            activation="tanh",
@@ -56,16 +65,6 @@ param_grids = {
                             'tol': [1e-5, ],
                             'class_weight': ['balanced', ],
                             'n_jobs': [-1, ]},
-    # TODO: Replace with LinearSVC
-    # 'SVM': [{'C': np.logspace(-5, 5, 11),
-    #          'kernel': ['poly', ],
-    #          'degree': range(1, 15),
-    #          'class_weight': ['balanced', ]},
-    #         {'C': np.logspace(-5, 5, 11),
-    #          'kernel': ['rbf', ],
-    #          'gamma': ['scale', ],
-    #          'class_weight': ['balanced', ]
-    #          }],
     'Neural Network': [{'hidden_layer_sizes': [(value,) for value in (1, 2, 5, 10, 20, 50, 100, 200, 500)],
                         'activation': ['tanh', ],
                         'solver': ['adam'],
@@ -82,6 +81,14 @@ param_grids = {
                         'learning_rate_init': [1e-2, ],
                         'max_iter': [1000, ],
                         'tol': [1e-5, ]}],
+    'SVM': {'C': np.logspace(-5, 5, 11),
+            'penalty': ['l2', ],
+            'loss': ["squared_hinge", ],
+            'dual': [False, ],
+            'tol': [1e-5, ],
+            'class_weight': ["balanced", ],
+            'random_state': [SEED, ],
+            'max_iter': [10000, ]},
     'Random Forest': {'n_estimators': [10, 25, 50, 100, 250, 500, 1000],
                       'criterion': ['entropy', 'gini'],
                       'max_depth': [None, 10, 25, 50, 100],
