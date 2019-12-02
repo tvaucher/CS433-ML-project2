@@ -48,7 +48,7 @@ if __name__ == "__main__":
     feature_labels_filepath = "./files/feature_labels.gz"
     feature_normalizer_filepath = "./files/feature_normalizer.gz"
     feature_selector_filepath = "./files/feature_selector.gz"
-    best_models_filepath = "./files/best_models.gz"
+    best_model_filepath = "./files/best_model.gz"
 
     test_dataset_filepath = "./files/test_dataset.tsv"
     test_dataset_reduced_filepath = "./files/test_dataset_reduced.tsv"
@@ -118,11 +118,11 @@ if __name__ == "__main__":
             print("Done!")
 
             print("Loading trained classifiers...")
-            best_models = load_object(best_models_filepath)
+            best_model = load_object(best_model_filepath)
             print("Done!")
 
             print("Calculating predictions using best classifier...")
-            test_predictions = best_models["Random Forest"].predict(test_dataset_reduced)
+            test_predictions = best_model.predict(test_dataset_reduced)
             print("Done!")
 
             print("Generating submission file...")

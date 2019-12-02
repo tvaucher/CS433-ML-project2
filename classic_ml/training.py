@@ -69,7 +69,7 @@ if __name__ == "__main__":
     feature_normalizer_filepath = "./files/feature_normalizer.gz"
     feature_selector_filepath = "./files/feature_selector.gz"
     feature_scores_filepath = "./files/feature_scores.tsv"
-    best_models_filepath = "./files/best_models.gz"
+    best_model_filepath = "./files/best_model.gz"
     cross_val_results_filepath = "./files/cross_val_results.tsv"
 
     if not isfile(train_dataset_filepath):
@@ -150,11 +150,11 @@ if __name__ == "__main__":
             train_dataset_reduced = pd.read_csv(train_dataset_reduced_filepath, sep='\t', header=0, encoding='utf-8')
             print("Done!")
 
-            if not isfile(best_models_filepath):
+            if not isfile(best_model_filepath):
                 print("Cross-validating classifier parameters and training classifiers...")
                 best_params, best_models, cross_val_scores = \
                     get_best_params_for_classifiers(train_dataset_reduced, train_classes)
-                save_object(best_models, best_models_filepath)
+                save_object(best_models["Neural Network"], best_model_filepath)
 
                 cross_val_results = [[classifier, best_params[classifier], cross_val_score]
                                      for classifier, cross_val_score in cross_val_scores.items()]
