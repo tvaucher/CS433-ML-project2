@@ -153,13 +153,13 @@ if __name__ == "__main__":
             if not isfile(best_models_filepath):
                 print("Cross-validating classifier parameters and training classifiers...")
                 best_params, best_models, cross_val_scores = \
-                    get_best_params_for_classifiers(train_dataset_reduced, train_classes, use_default_params=True)
+                    get_best_params_for_classifiers(train_dataset_reduced, train_classes)
                 save_object(best_models, best_models_filepath)
 
                 cross_val_results = [[classifier, best_params[classifier], cross_val_score]
                                      for classifier, cross_val_score in cross_val_scores.items()]
                 cross_val_results_df = pd.DataFrame(cross_val_results,
-                                                    columns=["Classifier", "Parameters", "Cross-validation score"])
+                                                    columns=["Classifier", "Parameters", "Cross-validation scores"])
                 cross_val_results_df.to_csv(cross_val_results_filepath, sep='\t',
                                             header=True, index=False, encoding='utf-8')
                 print("Done!")

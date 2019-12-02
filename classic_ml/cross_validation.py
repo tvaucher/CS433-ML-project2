@@ -8,8 +8,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
 
-from sklearn.model_selection import StratifiedKFold, GridSearchCV, cross_val_score
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.model_selection import StratifiedKFold, GridSearchCV
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.metrics import make_scorer
 
 from classic_ml.resources import SEED
@@ -103,7 +103,7 @@ param_grids = {
                       'n_jobs': [-1, ]}}
 
 
-def get_best_params_for_classifiers(train_set, train_classes, use_default_params=False):
+def get_best_params_for_classifiers(train_set, train_classes):
     classifier_list = list(classifiers_default.keys())
 
     classifiers_best_params = dict.fromkeys(classifier_list)
@@ -111,42 +111,31 @@ def get_best_params_for_classifiers(train_set, train_classes, use_default_params
     classifiers_cross_validation_scores = dict.fromkeys(classifier_list)
 
     validator = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
-    scorer = make_scorer(f1_score, greater_is_better=True)
+    scorer = {"Accuracy": make_scorer(accuracy_score, greater_is_better=True),
+              "Precision": make_scorer(precision_score, greater_is_better=True),
+              "Recall": make_scorer(recall_score, greater_is_better=True),
+              "F1": make_scorer(f1_score, greater_is_better=True)}
+    evaluation_metrics = list(scorer.keys())
 
-    if use_default_params:
-
-        for classifier_name, classifier_model in classifiers_default.items():
-            print("Cross-validating {} classifier...".format(classifier_name))
-            n_jobs_validation = -1 if classifier_name in ["Naive Bayes", "SVM", "Neural Network"] else 1
-            classifiers_best_params[classifier_name] = classifier_model.get_params()
-            classifier_scores_folds = cross_val_score(estimator=classifier_model,
-                                                      X=train_set,
-                                                      y=train_classes,
-                                                      scoring=scorer,
-                                                      cv=validator,
-                                                      n_jobs=n_jobs_validation,
-                                                      verbose=1)
-            classifier_model.fit(train_set, train_classes)
-            classifiers_best_models[classifier_name] = classifier_model
-            classifiers_cross_validation_scores[classifier_name] = np.mean(classifier_scores_folds)
-            print("Done with {}!".format(classifier_name))
-
-    else:
-
-        for classifier_name, classifier_model in classifiers_default.items():
-            print("Cross-validating {} classifier...".format(classifier_name))
-            n_jobs_validation = -1 if classifier_name in ["Naive Bayes", "SVM", "Neural Network"] else 1
-            classifier_grid_search = GridSearchCV(estimator=classifier_model,
-                                                  param_grid=param_grids[classifier_name],
-                                                  scoring=scorer,
-                                                  cv=validator,
-                                                  refit=True,
-                                                  n_jobs=n_jobs_validation,
-                                                  verbose=1)
-            classifier_grid_search.fit(train_set, train_classes)
-            classifiers_best_params[classifier_name] = classifier_grid_search.best_params_
-            classifiers_best_models[classifier_name] = classifier_grid_search.best_estimator_
-            classifiers_cross_validation_scores[classifier_name] = classifier_grid_search.best_score_
-            print("Done with {}!".format(classifier_name))
+    for classifier_name, classifier_model in classifiers_default.items():
+        print("Cross-validating {} classifier...".format(classifier_name))
+        classifier_grid_search = GridSearchCV(estimator=classifier_model,
+                                              param_grid=param_grids[classifier_name],
+                                              scoring=scorer,
+                                              cv=validator,
+                                              refit="F1",
+                                              n_jobs=NUM_CORES // 2,
+                                              verbose=1)
+        classifier_grid_search.fit(train_set, train_classes)
+        classifiers_best_params[classifier_name] = classifier_grid_search.best_params_
+        classifiers_best_models[classifier_name] = classifier_grid_search.best_estimator_
+        classifier_cross_validation_scores = \
+            {metric: classifier_grid_search.cv_results_['mean_test_{}'.format(metric)]
+             for metric in evaluation_metrics}
+        best_model_index = np.argmax(classifier_cross_validation_scores["F1"])
+        classifiers_cross_validation_scores[classifier_name] = {metric: scores[best_model_index]
+                                                                for metric, scores in
+                                                                classifier_cross_validation_scores.items()}
+        print("Done with {}!".format(classifier_name))
 
     return classifiers_best_params, classifiers_best_models, classifiers_cross_validation_scores
