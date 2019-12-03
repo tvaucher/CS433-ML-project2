@@ -69,9 +69,9 @@ if __name__ == "__main__":
     train_dataset_reduced_filepath = "./files/train_dataset_reduced.tsv"
     feature_normalizer_filepath = "./files/feature_normalizer.gz"
     feature_selector_filepath = "./files/feature_selector.gz"
-    feature_scores_filepath = "./files/feature_scores.tsv"
+    feature_scores_filepath = "./results/feature_scores.tsv"
     best_model_filepath = "./files/best_model.gz"
-    cross_val_results_filepath = "./files/cross_val_results.tsv"
+    cross_val_results_filepath = "./results/cross_val_results.tsv"
 
     if not isfile(train_classes_filepath):
         save_object(train_classes, train_classes_filepath)

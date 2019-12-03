@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     test_dataset_filepath = "./files/test_dataset.tsv"
     test_dataset_reduced_filepath = "./files/test_dataset_reduced.tsv"
-    submission_filepath = "./files/submission.csv"
+    submission_filepath = "./results/submission.csv"
 
     if not isfile(test_dataset_reduced_filepath):
         if not isfile(test_dataset_filepath):
