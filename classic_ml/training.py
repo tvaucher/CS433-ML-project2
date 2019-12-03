@@ -62,7 +62,8 @@ if __name__ == "__main__":
     print("Number of negative training tweets:", num_train_tweets_neg)
     print("Total number of training tweets:", num_train_tweets)
 
-    tweet_vocabulary_path = "./files/tweet_vocabulary.gz"
+    train_classes_filepath = "./files/train_classes.gz"
+    tweet_vocabulary_filepath = "./files/tweet_vocabulary.gz"
     train_dataset_filepath = "./files/train_dataset.tsv"
     feature_labels_filepath = "./files/feature_labels.gz"
     train_dataset_reduced_filepath = "./files/train_dataset_reduced.tsv"
@@ -71,6 +72,9 @@ if __name__ == "__main__":
     feature_scores_filepath = "./files/feature_scores.tsv"
     best_model_filepath = "./files/best_model.gz"
     cross_val_results_filepath = "./files/cross_val_results.tsv"
+
+    if not isfile(train_classes_filepath):
+        save_object(train_classes, train_classes_filepath)
 
     if not isfile(train_dataset_filepath):
         tweets_language_style_features = []
@@ -97,7 +101,7 @@ if __name__ == "__main__":
 
         print("Calculating TF-IDF features...")
         tweet_vocabulary = reduce_vocabulary(tweet_vocabulary)
-        save_object(tweet_vocabulary, tweet_vocabulary_path)
+        save_object(tweet_vocabulary, tweet_vocabulary_filepath)
         tweets_tf_idf_features = get_tf_idf_features(tweet_documents, tweet_vocabulary)
         print("Done!")
 

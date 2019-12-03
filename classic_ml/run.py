@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     print("Total number of testing tweets:", num_test_tweets)
 
-    tweet_vocabulary_path = "./files/tweet_vocabulary.gz"
+    tweet_vocabulary_filepath = "./files/tweet_vocabulary.gz"
     feature_labels_filepath = "./files/feature_labels.gz"
     feature_normalizer_filepath = "./files/feature_normalizer.gz"
     feature_selector_filepath = "./files/feature_selector.gz"
@@ -77,7 +77,7 @@ if __name__ == "__main__":
             print("Done!")
 
             print("Calculating TF-IDF features...")
-            tweet_vocabulary = load_object(tweet_vocabulary_path)
+            tweet_vocabulary = load_object(tweet_vocabulary_filepath)
             tweets_tf_idf_features = get_tf_idf_features(tweet_documents, tweet_vocabulary)
             print("Done!")
 
