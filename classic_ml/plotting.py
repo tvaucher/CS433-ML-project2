@@ -28,15 +28,13 @@ def plot_cumulative_distribution_for_feature_importances(importances, filepath):
 
 def plot_class_distribution_for_features(data, filepath):
     feature_means_by_class = data.groupby("Class").mean().transpose()
-    feature_sds_by_class = data.groupby("Class").std().transpose()
 
     feature_class_differences = feature_means_by_class[1] - feature_means_by_class[-1]
     feature_class_differences = feature_class_differences.sort_values(ascending=False).reset_index()
+    feature_class_differences = pd.concat((feature_class_differences.iloc[:15], feature_class_differences[-10:]))
     feature_class_differences.columns = ["Feature", "Class Difference"]
 
-    feature_sds_average = feature_sds_by_class.mean(axis=1)
-
-    plt.figure(figsize=(18, 10))
+    plt.figure(figsize=(7 * (9 / 5), 7))
     plt.title("Class distribution of best features", fontsize=24)
     sns.barplot(y="Feature",
                 x="Class Difference",
@@ -45,8 +43,10 @@ def plot_class_distribution_for_features(data, filepath):
     plt.xlabel("Average difference of feature values across classes", fontsize=18)
     plt.ylabel("Feature", fontsize=18)
     plt.xticks(fontsize=14)
-    plt.xticks(fontsize=14)
-    plt.savefig(fname=filepath, dpi="figure", format="png", papertype="a4")
+    plt.yticks(fontsize=14)
+    plt.xlim(-0.06, 0.06)
+    plt.tight_layout()
+    plt.savefig(fname=filepath, dpi="figure", format="png")
     plt.show()
 
 
