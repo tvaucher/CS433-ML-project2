@@ -1,3 +1,10 @@
+"""
+Main script
+    Performing preprocessing and feature extraction on the testing set of tweets
+    Normalization and feature selection using the pre-fitted transformers
+    Generating the baseline submission using the trained best classifier's predictions
+"""
+
 from os.path import isfile
 
 import csv
@@ -27,34 +34,39 @@ def create_csv_submission(ids, y_pred, name):
                y_pred (predicted class labels)
                name (string name of .csv output file to be created)
     """
-    with open(name, 'w') as csvfile:
-        fieldnames = ['Id', 'Prediction']
+    with open(name, "w") as csvfile:
+        fieldnames = ["Id", "Prediction"]
         writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=fieldnames)
         writer.writeheader()
         for r1, r2 in zip(ids, y_pred):
-            writer.writerow({'Id': int(r1), 'Prediction': int(r2)})
+            writer.writerow({"Id": int(r1), "Prediction": int(r2)})
         csvfile.close()
 
 
 if __name__ == "__main__":
+    # Set the random seed for scikit-learn to the global seed value
     np.random.seed(SEED)
 
+    # Load the testing tweets
     test_tweets, test_ids = read_tweet_file("../data/test_data.txt")
     num_test_tweets = len(test_tweets)
-
     print("Total number of testing tweets:", num_test_tweets)
 
+    # Filepaths of required resources
     tweet_vocabulary_filepath = "./files/tweet_vocabulary.gz"
     feature_labels_filepath = "./files/feature_labels.gz"
     feature_normalizer_filepath = "./files/feature_normalizer.gz"
     feature_selector_filepath = "./files/feature_selector.gz"
     best_model_filepath = "./files/best_model.gz"
 
+    # Filepaths for saving the results
     test_dataset_filepath = "./files/test_dataset.tsv"
     test_dataset_reduced_filepath = "./files/test_dataset_reduced.tsv"
     submission_filepath = "./results/submission.csv"
 
+    # Perform feature normalization and selection only if not already performed
     if not isfile(test_dataset_reduced_filepath):
+        # Perform feature extraction only if not already performed
         if not isfile(test_dataset_filepath):
             tweets_language_style_features = []
             tweet_documents = []
@@ -90,11 +102,11 @@ if __name__ == "__main__":
                                       tweets_vader_sentiment_features,
                                       tweets_empath_sentiment_features))
             test_dataset = pd.DataFrame(test_dataset, columns=feature_labels)
-            test_dataset.to_csv(test_dataset_filepath, sep='\t', header=True, index=False, encoding='utf-8')
+            test_dataset.to_csv(test_dataset_filepath, sep="\t", header=True, index=False, encoding="utf-8")
             print("Done!")
         else:
             print("Reading testing features...")
-            test_dataset = pd.read_csv(test_dataset_filepath, sep='\t', header=0, encoding='utf-8')
+            test_dataset = pd.read_csv(test_dataset_filepath, sep="\t", header=0, encoding="utf-8")
             feature_labels = load_object(feature_labels_filepath)
             print("Done!")
 
@@ -109,12 +121,12 @@ if __name__ == "__main__":
             test_dataset_reduced = pd.DataFrame(feature_selector.transform(test_dataset),
                                                 columns=feature_labels_reduced)
             del test_dataset
-            test_dataset_reduced.to_csv(test_dataset_reduced_filepath, sep='\t',
-                                        header=True, index=False, encoding='utf-8')
+            test_dataset_reduced.to_csv(test_dataset_reduced_filepath, sep="\t",
+                                        header=True, index=False, encoding="utf-8")
             print("Done!")
     else:
         print("Reading reduced testing features...")
-        test_dataset_reduced = pd.read_csv(test_dataset_reduced_filepath, sep='\t', header=0, encoding='utf-8')
+        test_dataset_reduced = pd.read_csv(test_dataset_reduced_filepath, sep="\t", header=0, encoding="utf-8")
         print("Done!")
 
         print("Loading trained classifiers...")

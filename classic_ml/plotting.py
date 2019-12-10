@@ -1,14 +1,27 @@
+""" Script containing code to generate the plots """
+
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 
 from classic_ml.serialization import load_object
 
+# Set the seaborn plotting style
 sns.set(style="darkgrid", context="paper")
 
 
 def plot_cumulative_distribution_for_feature_importances(importances, filepath):
+    """
+    Function to generate a cumulative distribution plot for the feature importances
+
+    :param importances: feature importance values, pandas.Series object
+    :param filepath: local path where to save the plot figure as a image file, string
+    """
+
+    # Compute the CDF of the feature importances using cumulative sums of the sorted values
     importances_cdf = importances.sort_values(ascending=False).cumsum().reset_index().drop("index", axis=1)
+
+    # Use the CDF to find what percentage of the total feature importance do the first 40 features have
     importance_40 = importances_cdf.iloc[39][0]
 
     plt.figure(figsize=(9, 5))
@@ -26,9 +39,23 @@ def plot_cumulative_distribution_for_feature_importances(importances, filepath):
     plt.show()
 
 
-def plot_class_distribution_for_features(data, filepath):
+def plot_class_distribution_for_features(data, classes, filepath):
+    """
+    Function to visualize dependence of values of the best features on class
+
+    :param data: tweet feature vector values, pandas.DataFrame object
+    :param classes: tweet class values, pandas.Series object
+    :param filepath: local path where to save the plot figure as a image file, string
+    """
+
+    # Join the tweet feature vectors and classes together
+    data = pd.concat([data, classes], axis=1)
+
+    # Calculate the mean value for each feature in samples of each class
     feature_means_by_class = data.groupby("Class").mean().transpose()
 
+    # Calculate the difference between the class means for each feature
+    # A positive class difference indicates higher feature values for the positive class and vice versa
     feature_class_differences = feature_means_by_class[1] - feature_means_by_class[-1]
     feature_class_differences = feature_class_differences.sort_values(ascending=False).reset_index()
     feature_class_differences = pd.concat((feature_class_differences.iloc[:15], feature_class_differences[-10:]))
@@ -51,16 +78,25 @@ def plot_class_distribution_for_features(data, filepath):
 
 
 if __name__ == "__main__":
+    # Filepaths of required resources
     feature_selector_filepath = "./files/feature_selector.gz"
     train_dataset_reduced_filepath = "./files/train_dataset_reduced.tsv"
     train_classes_filepath = "./files/train_classes.gz"
 
-    train_dataset_reduced = pd.read_csv(train_dataset_reduced_filepath, sep='\t', header=0, encoding='utf-8')
+    # Load the reduced and normalized training set
+    train_dataset_reduced = pd.read_csv(train_dataset_reduced_filepath, sep="\t", header=0, encoding="utf-8")
+    # Load the training class labels and convert the vector to a pandas.Series object
     train_classes = pd.Series(load_object(train_classes_filepath), name="Class")
+
+    # Load the feature selector model
     feature_selector = load_object(feature_selector_filepath)
-
+    # Get the complete vector of feature importances from the feature selector and save it as a pandas.Series object
     feature_importances = pd.Series(feature_selector.estimator_.feature_importances_, name="Feature Importance")
-    plot_cumulative_distribution_for_feature_importances(feature_importances, "./results/importances_cumul_dist.png")
 
-    train_data = pd.concat([train_dataset_reduced, train_classes], axis=1)
-    plot_class_distribution_for_features(train_data, "./results/features_class_differences.png")
+    # Generate the first plot and save it locally
+    plot_cumulative_distribution_for_feature_importances(feature_importances,
+                                                         "./results/importances_cumul_dist.png")
+    # Generate the second plot and save it locally
+    plot_class_distribution_for_features(train_dataset_reduced,
+                                         train_classes,
+                                         "./results/features_class_differences.png")
