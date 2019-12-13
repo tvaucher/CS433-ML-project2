@@ -2,19 +2,22 @@ import argparse
 
 import torch
 import torch.nn as nn
+from torch.nn.utils import clip_grad_norm_
 import torch.optim as optim
-from tqdm import tqdm, trange
+from tqdm.auto import tqdm, trange
 
 from helpers import set_seed
 from data_loader import DataLoader
-from model import BaselineGRU, load_model, save_model
+from model import MultiLayerGRU, load_model, save_model
 
 
 def compute_accuracy(pred, targets):
+    ''' Accuracy between the given predictions and targets '''
     return (pred == targets).float().mean().item()
 
 
 def log_validation(model, loss_fn, val_batch_it):
+    ''' Compute the loss and accuracy of the entire validation set '''
     val_pred = []
     val_target = []
     val_loss = 0.
@@ -28,7 +31,8 @@ def log_validation(model, loss_fn, val_batch_it):
         torch.cat(val_pred), torch.cat(val_target)), val_loss)
 
 
-def fit(model, loss_fn, optimizer, train_batch_it, val_batch_it, checkpoint_name, embedding_dim, epochs=10, nb_epochs_done=0):
+def fit(model, loss_fn, optimizer, train_batch_it, val_batch_it, checkpoint_name, embedding_dim, epochs=6, nb_epochs_done=0):
+    ''' Fit the model over the data for a given number of epoch, support restarting '''
     for epoch in trange(nb_epochs_done, epochs):
         model.train(True)
         train_pred = []
@@ -42,6 +46,7 @@ def fit(model, loss_fn, optimizer, train_batch_it, val_batch_it, checkpoint_name
             loss = loss_fn(pred, targets)
             optimizer.zero_grad()
             loss.backward()
+            clip_grad_norm_(model.parameters(), 1)
             optimizer.step()
             train_pred.append(pred.argmax(axis=1))
             train_targets.append(targets)
@@ -67,8 +72,8 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--checkpoint', type=str,
                         help='Path to checkpoint prefix',
                         required=True)
-    parser.add_argument('-n', '--epochs', type=int, default=10,
-                        help='Number of epoch to train for default=10')
+    parser.add_argument('-n', '--epochs', type=int, default=6,
+                        help='Number of epoch to train for default=6')
     parser.add_argument('--seed', type=int, default=1,
                         help='Set the seed, default=1')
     parser.add_argument('--dim', type=int, default=200, choices=[
@@ -91,7 +96,7 @@ if __name__ == '__main__':
     data.save()
 
     print('Creating the model')
-    model = BaselineGRU(args.dim, data.get_vector(), device).to(device)
+    model = BaselMultiLayerGRU(args.dim, data.get_vector(), device).to(device)
     optimizer = optim.Adam(
         filter(lambda p: p.requires_grad, model.parameters()), 1e-3)
     loss_criterion = nn.NLLLoss()
