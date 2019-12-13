@@ -1,6 +1,7 @@
 import csv
 import random
 
+import numpy as np
 import torch
 
 
@@ -21,13 +22,17 @@ class BatchGenerator:
 
 
 def set_seed(seed=1):
+    ''' Manually set the seed accross all random generator '''
     random.seed(seed)
+    np.random.seed(seed)
     torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
 
 def make_prediction(model, test_batch_it):
+    ''' take the test set, produces prediciton and return 2 numpy array (ids, pred) '''
     test_pred = []
     test_ids = []
     model.train(False)
