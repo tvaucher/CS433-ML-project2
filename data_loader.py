@@ -10,7 +10,12 @@ from preprocessing import filter_tokens, tokenize
 
 
 class DataLoader:
+    ''' 
+    Housekeeping module for the train and test data.
+    Load and transform it into batches that can fed to the model
+    '''
     def __init__(self, text_field_file=None, embedding_dim=200):
+        ''' text_field_file: vocabulary file, should be not None for run.py '''
         self.label_field = Field(
             sequential=False, use_vocab=False, is_target=True)
         self.text_field = torch.load(text_field_file) if text_field_file else Field(
@@ -27,12 +32,14 @@ class DataLoader:
         self.embedding_dim = embedding_dim
 
     def save(self, path='model/'):
+        ''' Save the vocabulary, used in train.py '''
         torch.save(self.text_field, path + 'vocabulary.pth')
 
     def get_vector(self):
         return self.text_field.vocab.vectors
 
     def load_split_train(self, path_train, path_glove, device, split_ratio=0.9):
+        ''' Load, split and transform the training set into train / val batches '''
         # Load Dataset
         dataset = TabularDataset(
             path_train, 'tsv', self.__train_fields, skip_header=True)
@@ -60,11 +67,12 @@ class DataLoader:
         return train_batch_it, val_batch_it
 
     def load_test(self, path_test, device):
+        ''' Load, split and transform the test set into batches '''
         with open(path_test, 'r', encoding='utf-8') as test_file:
             test_lines = [line.rstrip('\n').split(',', 1)
                           for line in test_file]
             test_examples = list(map(lambda x: Example.fromlist(
-                [x[0], tokenize(x[1])], self.__test_fields), test_lines))
+                [x[0], ' '.join(tokenize(x[1]))], self.__test_fields), test_lines))
 
         test_dataset = Dataset(test_examples, self.__test_fields)
         test_batch = Iterator(test_dataset, self.test_batch_size, sort_key=lambda x: len(x.tweet), device=device, sort_within_batch=True, train=False)
