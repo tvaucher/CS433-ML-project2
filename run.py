@@ -4,7 +4,7 @@ import torch
 
 from data_loader import DataLoader
 from helpers import create_csv_submission, make_prediction
-from model import BaselineGRU
+from model import MultiLayerGRU
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -28,13 +28,13 @@ if __name__ == "__main__":
     else:
         device = torch.device('cpu')
 
-    print('Loading the model')
+    print('Loading the vocabulary and the model')
     saved_model = torch.load(
         args.model, map_location=lambda storage, loc: storage)
     embedding_dim = saved_model['embedding_dim']
     data = DataLoader(text_field_file=args.vocabulary,
                       embedding_dim=embedding_dim)
-    model = BaselineGRU(embedding_dim, data.get_vector(), device)
+    model = MultiLayerGRU(embedding_dim, data.get_vector(), device)
     model.load_state_dict(saved_model['model_state'])
     model.to(device)
 
