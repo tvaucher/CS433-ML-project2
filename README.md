@@ -1,17 +1,13 @@
 # CS-433 Project 2, 2019, Text Classification
-## Abstract
-
-ToDo : Write a cool abstract
-
-## Brief Overview
-
-Lorem ipsum dolor sit amet 
 
 ## File structure
 
-- foo.py
-- bar.py
-- baz.py
+- `data_loader.py`: Housekeeping module for the train and test data. Load and transform it into batches that can fed to the model
+- `helpers.py`: Helpers methods to set the seet, make the predictions and create the submission file
+- `model.py`: Contains the 2 models, a baseline and a multi-layer versions
+- `preprocessing.py`: All the preprocessing methods for this project. Roughly follows [those from Standford](https://nlp.stanford.edu/projects/glove/preprocess-twitter.rb). Self contained program as well (see usage below)
+- `train.py`: Contains the training procedure. For usage, see below.
+- `run.py`: Contains the methods to load the test set and model, infer the prediction and output the submission file. See usage below.
 
 ## Reproducibility
 
@@ -28,7 +24,7 @@ Lorem ipsum dolor sit amet
 
 --------
 
-3. If you don't want to run the preprocessing part (about ~15 min) we suggest that you download our [preprocessed training dataset]() and put it in the datafolder
+3. That the [Stanford NLP Twitter GloVe](https://nlp.stanford.edu/projects/glove/) Embeddings are downloaded and extracted
 
 ### Create the environment
 
@@ -48,7 +44,7 @@ python -m spacy download en_core_web_sm
 - [`tqdm`](https://tqdm.github.io/): fancy progress bars
 - [`spacy`]( https://spacy.io/ ): NLP framework. Used for tokenizing and during the preprocessing
 - [`pytorch`]( https://pytorch.org/ ): Deep Learning framework. Used to create, train and exploit our deep learning models. If you're running on a laptop without a GPU, you need to change the `cudatoolkit=10.1` to `cpu_only`, or remove it completely on a Mac because they don't support CUDA at all. See [PyTorch Get Started]( https://pytorch.org/get-started/locally/ ) for more infos.
-- [`torchtext `]( https://pytorch.org/text/index.html ): Allow to facilitate: Data loading and preprocessing, batches and feeding to a neural net as well as downloading and loading pretrained Embeddings (for us [Stanford NLP Twitter GloVe]( https://nlp.stanford.edu/projects/glove/ )). At the time of writing, `torchtext 0.4.0` has a [bug]( https://github.com/pytorch/text/pull/584 ) in one of its core features so we use the latest version on github
+- [`torchtext`]( https://pytorch.org/text/index.html ): Allow to facilitate: Data loading and preprocessing, batches and feeding to a neural net. At the time of writing, `torchtext 0.4.0` has a [bug]( https://github.com/pytorch/text/pull/584 ) in one of its core features so we use the latest version on github
 
 ### Run the code
 
@@ -78,7 +74,7 @@ optional arguments:
   -c CHECKPOINT, --checkpoint CHECKPOINT
                         Path to checkpoint prefix
   -n EPOCHS, --epochs EPOCHS
-                        Number of epoch to train for default=10
+                        Number of epoch to train for default=6
   --seed SEED           Set the seed, default=1
   --dim {25,50,100,200}
                         Set the dimension of the embedding [25, 50, 100, 200],
@@ -86,8 +82,9 @@ optional arguments:
 ```
 
 In order to output the submission:
+You need to choose the best checkpoint (highest validation accuracy) as the model
 ```shell
-python run.py -f data/test_data.txt -o data/submission.csv -m model/model.pth -v model/vocabulary.pth
+python run.py -f data/test_data.txt -o data/submission.csv -m model/chkpt_4.pth -v model/vocabulary.pth
 ```
 
 ## Authors (team: Definitely not GRUs)
