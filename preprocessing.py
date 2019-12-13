@@ -4,7 +4,7 @@ import spacy
 import en_core_web_sm
 from spacy.matcher import Matcher
 import re
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 # Set up the tokenizer
 nlp = en_core_web_sm.load(disable=['tagger', 'parser', 'ner'])
@@ -127,6 +127,7 @@ def transform(x):
     return x.strip()
 
 def preprocess_train(positive_file, negative_file, out_file):
+    ''' Take the pos + neg file as input, tokenize and write them in out_file '''
     with open(negative_file, 'r', encoding='utf-8') as neg,\
             open(positive_file, 'r', encoding='utf-8') as pos,\
             open(out_file, 'w', encoding='utf-8') as out:
@@ -138,6 +139,7 @@ def preprocess_train(positive_file, negative_file, out_file):
 
 
 def remove_duplicate(train_file, out_file):
+    ''' Remove duplicated line from the training set '''
     with open(train_file, 'r', encoding='utf-8') as f1,\
             open(out_file, 'w', encoding='utf-8') as f2:
         print('label\ttweet', file=f2)
@@ -146,6 +148,7 @@ def remove_duplicate(train_file, out_file):
 
 
 def filter_tokens(raw_tokens):
+    ''' Remove a set list of tokens (similar to Stopwords filtering) '''
     filtered_word = {'<user>', '<url>', '/', ',', ':', '[', ']', 'rt'}
     tokens = [t for t in raw_tokens if t not in filtered_word]
     if not tokens:
