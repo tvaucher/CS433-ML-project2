@@ -4,6 +4,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
 def load_model(checkpoint_path, model, optimizer):
+    ''' Load a model from a checkpoint, useful to restart the training process '''
     try:
         checkpoint = torch.load(checkpoint_path)
         nb_epochs_done = checkpoint['nb_epochs_done']
@@ -17,6 +18,7 @@ def load_model(checkpoint_path, model, optimizer):
 
 
 def save_model(checkpoint_path, model, optimizer, epoch, embedding_dim):
+    ''' Save the model in a checkpoint. Save the state dict of the model and the optimizer'''
     checkpoint = {
         'nb_epochs_done': epoch+1,
         'embedding_dim': embedding_dim,
@@ -27,6 +29,11 @@ def save_model(checkpoint_path, model, optimizer, epoch, embedding_dim):
 
 
 class BaselineGRU(nn.Module):
+    '''
+    Baseline model using Pretrained freezed Stanford NLP Embedding and single layer BiGRUs
+    Classification is a 2 hidden layers (512->512->256->2) feed forward with Dropout(0.5)
+    The initial GRU hidden state is trainaible, there's a 0.25 Dropout on the GRUs
+    '''
     def __init__(self, embedding_dim, vocab_vec, device, bidirectional=True):
         super().__init__()
         self.hidden_dim_gru = 256
@@ -46,6 +53,11 @@ class BaselineGRU(nn.Module):
         return self.classifier(h.transpose(0, 1).reshape(-1, self.hidden_dim_gru * 2))
 
 class MultiLayerGRU(nn.Module):
+    '''
+    Multilayer model using Pretrained freezed Stanford NLP Embedding and n-layer BiGRUs (3)
+    Classification is a 2 hidden layers (256->512->256->2) feed forward with Dropout(0.5)
+    The initial GRU hidden state is trainaible, there's a 0.25 Dropout on the GRUs
+    '''
     def __init__(self, embedding_dim, vocab_vec, device, bidirectional=True, layers=3):
         super().__init__()
         self.hidden_dim_gru = 256
