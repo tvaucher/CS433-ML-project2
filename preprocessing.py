@@ -1,12 +1,13 @@
 '''Module containing the preprocessing methods, if called as standalone, apply preprocessing to the training sets'''
 import argparse
 import spacy
+import en_core_web_sm
 from spacy.matcher import Matcher
 import re
 from tqdm import tqdm
 
 # Set up the tokenizer
-nlp = spacy.load('en_core_web_sm', disable=['tagger', 'parser', 'ner'])
+nlp = en_core_web_sm.load(disable=['tagger', 'parser', 'ner'])
 matcher = Matcher(nlp.vocab)
 matcher.add('TAGS', None, [{'TEXT': '<'}, {
             'TEXT': {'REGEX': r'\w+'}}, {'TEXT': '>'}])
@@ -92,6 +93,8 @@ def preprocess(x):
     x = reduce_elong_words(x)
     x = remove_parenthesis_pairs(x)
     x = parse_hashtag(x)
+    x = re.sub(r'["\t]', '', x)
+    x = re.sub(r'(\\ <number> ?){2,}', '<number> <repeat> ', x)
     return x
 
 
@@ -108,6 +111,20 @@ def tokenize(x):
             retokenizer.merge(span)
     return [p.text for p in parsed]
 
+
+def transform(x):
+    ''' Remove < > and map some specific GloVe tokens to natural text'''
+    to_remove = ['<url>', '<hashtag>', '#']
+    to_transform = {'<sadface>': 'sad',
+                    '<neutralface>': 'neutral',
+                    '<lolface>': 'happy',
+                    '<elong>': 'long'}
+    for k, v in to_transform.items():
+        x = re.sub(k, v, x)
+    x = re.sub('|'.join(to_remove), '', x)
+    x = re.sub(r'<([^>]+)>', r'\1', x)
+    x = re.sub(r'\bn\'t\b', 'not', x)
+    return x.strip()
 
 def preprocess_train(positive_file, negative_file, out_file):
     with open(negative_file, 'r', encoding='utf-8') as neg,\
