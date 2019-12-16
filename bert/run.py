@@ -41,10 +41,13 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--model', type=str,
                         help='Path to model folder',
                         required=True)
+    parser.add_argument('--batch_size', type=int,
+                        help='Batch size (2GB GPU==10, else 25), default=10',
+                        default=10)
     args = parser.parse_args()
     
     print('Loading the model and the test set')
-    model = TestModel(BertForSequenceClassification, args.model, args.file, 25, get_device())
+    model = TestModel(BertForSequenceClassification, args.model, args.file, args.batch_size, get_device())
     print('Infering the prediction')
     test_ids, test_pred = model.make_predictions()
     print(f'Creating the submission under {args.out}')
