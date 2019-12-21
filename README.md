@@ -16,7 +16,7 @@ To run our final model for the evaluation, please proceed to the [BERT model](be
 
 ## Results
 
-[Link](https://www.aicrowd.com/challenges/epfl-ml-text-classification-2019/leaderboards) to the Competition leaderboard
+[Link](https://www.aicrowd.com/challenges/epfl-ml-text-classification-2019/leaderboards) to the Competition leaderboard. Our team finished **2nd** out of **37** participating teams / indivduals.
 
 | Model                             | Accuracy | F1-score |
 | --------------------------------- | -------- | -------- |
